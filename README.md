@@ -3,7 +3,7 @@
 ## Sobre o projeto
 Vocês explicam sobre o projeto
 
-## Funcionalidades
+## Funcionalidades (do app)
 
 - Tela de login.
 - Tela de cadastro de conta.
