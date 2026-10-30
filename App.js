@@ -11,6 +11,7 @@ import {
   StatusBar,
   SafeAreaView,
   Animated,
+  Alert,
 } from 'react-native';
 
 const LARANJA = '#FF7E35';
@@ -43,6 +44,7 @@ export default function App() {
   }, [menuAberto, animacaoMenu]);
 
   const [pets, setPets] = useState(petsIniciais);
+  const [petEmEdicao, setPetEmEdicao] = useState(null);
   const [petSelecionado, setPetSelecionado] = useState(petsIniciais[0]);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -124,28 +126,95 @@ export default function App() {
     );
   }
 
+  function editarPet(pet) {
+    setPetEmEdicao(pet.id);
+
+    setNomePet(pet.nome);
+    setEspecie(pet.especie);
+    setRaca(pet.raca);
+    setTamanho(pet.tamanho);
+    setPeso(pet.peso);
+
+    abrirTela('cadastroPet');
+  }
+
+  function excluirPet() {
+    Alert.alert(
+      'Excluir pet',
+      `Tem certeza de que deseja excluir ${petSelecionado.nome}?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            setPets((atuais) =>
+              atuais.filter(
+                (pet) => pet.id !== petSelecionado.id
+              )
+            );
+
+            setVacinas((atuais) => {
+              const novasVacinas = { ...atuais };
+              delete novasVacinas[petSelecionado.id];
+              return novasVacinas;
+            });
+
+            setPetSelecionado(null);
+            abrirTela('inicio');
+          },
+        },
+      ]
+    );
+  }
+
   function adicionarPet() {
     if (!nomePet.trim() || !especie.trim()) {
       alert('Informe pelo menos o nome e a espécie do pet.');
       return;
     }
-  
-    const novoPet = {
-      id: String(Date.now()),
-      nome: nomePet.trim(),
-      especie: especie.trim(),
-      raca: raca.trim() || 'Não informada',
-      tamanho: tamanho.trim() || 'Não informado',
-      peso: peso.trim() || 'Não informado',
-    };
 
-    setPets((atuais) => [...atuais, novoPet]);
-    setPetSelecionado(novoPet);
+    if (petEmEdicao) {
+      const petAtualizado = {
+        id: petEmEdicao,
+        nome: nomePet.trim(),
+        especie: especie.trim(),
+        raca: raca.trim() || 'Não informada',
+        tamanho: tamanho.trim() || 'Não informado',
+        peso: peso.trim() || 'Não informado',
+      };
+
+      setPets((atuais) =>
+        atuais.map((pet) =>
+          pet.id === petEmEdicao ? petAtualizado : pet
+        )
+      );
+
+      setPetSelecionado(petAtualizado);
+      setPetEmEdicao(null);
+    } else {
+      const novoPet = {
+        id: String(Date.now()),
+        nome: nomePet.trim(),
+        especie: especie.trim(),
+        raca: raca.trim() || 'Não informada',
+        tamanho: tamanho.trim() || 'Não informado',
+        peso: peso.trim() || 'Não informado',
+      };
+
+      setPets((atuais) => [...atuais, novoPet]);
+      setPetSelecionado(novoPet);
+    }
+
     setNomePet('');
     setEspecie('');
     setRaca('');
     setTamanho('');
     setPeso('');
+
     abrirTela('inicio');
   }
 
@@ -345,6 +414,16 @@ export default function App() {
             {botao(
               'Carteirinha de vacinas',
               () => abrirTela('vacinas'),
+              styles.botaoSecundario
+            )}
+            {botao(
+              'Editar informações',
+              () => editarPet(petSelecionado),
+              styles.botaoSecundario
+            )}
+            {botao(
+              'Excluir pet',
+              excluirPet,
               styles.botaoSecundario
             )}
           </ScrollView>
