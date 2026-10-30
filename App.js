@@ -51,6 +51,10 @@ export default function App() {
   const [raca, setRaca] = useState('');
   const [tamanho, setTamanho] = useState('');
   const [peso, setPeso] = useState('');
+  const [vacinas, setVacinas] = useState({});
+  const [nomeVacina, setNomeVacina] = useState('');
+  const [dataAplicacao, setDataAplicacao] = useState('');
+  const [proximaDose, setProximaDose] = useState('');
 
   function botao(texto, acao, estilo = {}) {
     return (
@@ -125,7 +129,7 @@ export default function App() {
       alert('Informe pelo menos o nome e a espécie do pet.');
       return;
     }
-
+  
     const novoPet = {
       id: String(Date.now()),
       nome: nomePet.trim(),
@@ -143,6 +147,32 @@ export default function App() {
     setTamanho('');
     setPeso('');
     abrirTela('inicio');
+  }
+
+  function adicionarVacina() {
+    if (!nomeVacina.trim() || !dataAplicacao.trim()) {
+      alert('Informe o nome da vacina e a data de aplicação.');
+      return;
+    }
+
+    const novaVacina = {
+      id: String(Date.now()),
+      nome: nomeVacina.trim(),
+      data: dataAplicacao.trim(),
+      proximaDose: proximaDose.trim() || 'Não informada',
+    };
+
+    setVacinas((atuais) => ({
+      ...atuais,
+      [petSelecionado.id]: [
+        ...(atuais[petSelecionado.id] || []),
+        novaVacina,
+      ],
+    }));
+
+    setNomeVacina('');
+    setDataAplicacao('');
+    setProximaDose('');
   }
 
   return (
@@ -312,8 +342,9 @@ export default function App() {
             </View>
 
             {botao('Localização', () => abrirTela('localizacao'))}
-            {botao('Carteirinha de vacinas', () =>
-              alert('A carteirinha de vacinas será implementada depois.'),
+            {botao(
+              'Carteirinha de vacinas',
+              () => abrirTela('vacinas'),
               styles.botaoSecundario
             )}
           </ScrollView>
@@ -374,7 +405,78 @@ export default function App() {
         </View>
       )}
 
+      {tela === 'vacinas' && (
+        <View style={styles.tela}>
+          {cabecalho('Carteirinha de vacinação', 'pet')}
+
+          <ScrollView contentContainerStyle={styles.formulario}>
+            <Text style={styles.nomeDetalhe}>
+              {petSelecionado?.nome}
+            </Text>
+
+            <Text style={styles.subtituloCidade}>
+              Vacinas registradas
+            </Text>
+
+            {(vacinas[petSelecionado.id] || []).length === 0 ? (
+              <View style={styles.clinica}>
+                <Text style={styles.textoClinica}>
+                  Nenhuma vacina cadastrada ainda.
+                </Text>
+              </View>
+            ) : (
+              (vacinas[petSelecionado.id] || []).map((vacina) => (
+                <View key={vacina.id} style={styles.cartaoVacina}>
+                  <Text style={styles.nomeVacina}>
+                    {vacina.nome}
+                  </Text>
+
+                  <Text style={styles.textoVacina}>
+                    Aplicação: {vacina.data}
+                  </Text>
+
+                  <Text style={styles.textoVacina}>
+                    Próxima dose: {vacina.proximaDose}
+                  </Text>
+                </View>
+              ))
+            )}
+
+            <View style={styles.linhaDivisoria} />
+
+            <Text style={styles.subtituloCidade}>
+              Adicionar vacina
+            </Text>
+
+            {campo(
+              'Nome da vacina:',
+              nomeVacina,
+              setNomeVacina,
+              'Ex.: Antirrábica'
+            )}
+
+            {campo(
+              'Data de aplicação:',
+              dataAplicacao,
+              setDataAplicacao,
+              'Ex.: 29/10/2026'
+            )}
+
+            {campo(
+              'Próxima dose:',
+              proximaDose,
+              setProximaDose,
+              'Ex.: 29/10/2027'
+            )}
+
+            {botao('Salvar vacina', adicionarVacina)}
+          </ScrollView>
+        </View>
+      )}
+
+
       {tela === 'veterinarios' && (
+        
         <View style={styles.tela}>
           {cabecalho('Clínicas veterinárias')}
           <ScrollView contentContainerStyle={styles.formulario}>
@@ -930,4 +1032,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 100 
   },
+  cartaoVacina: {
+    backgroundColor: PESSEGO,
+    borderRadius: 15,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 5,
+    borderLeftColor: LARANJA,
+  },
+  nomeVacina: {
+    color: PRETO,
+    fontSize: 17,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  textoVacina: {
+    color: PRETO,
+    fontSize: 14,
+    marginTop: 4,
+  },
 });
+
+
